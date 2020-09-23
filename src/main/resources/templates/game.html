@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <link rel="stylesheet" href="/css/styles.css" th:href="@{/css/styles.css}">
+    <link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+    th:href="@{/webjars/bootstrap/css/bootstrap.min.css}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" charset="utf-8"></script>
+<meta charset="ISO-8859-1">
+<title>Hangman</title>
+</head>
+<body style="padding:0px;">
+	<form th:action="@{/auth/logout}" method="POST" id="logoutForm"></form>
+	<form th:action="@{/auth/logout}" method="POST" id="logoutForm"></form>
+	
+		    
+	<ul class="box-area">
+		<li></li>
+		<li></li>
+		<li></li>
+		<li></li>
+		<li></li>
+		<li></li>
+	</ul>
+	
+	<div>
+    	<div id="profile">
+    		<a id="profiletext" href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+    			<span th:text ="${current_user.name}"></span> &nbsp;<span class="glyphicon glyphicon-user"></span>	
+    		</a>
+    		<ul class="dropdown-menu customdropdown">
+				<li>
+					<a>
+						<span class="glyphicon glyphicon-user"></span>&nbsp; My Profile
+					</a>
+				</li>
+				<li>
+					<a href="/statistics">
+						<span class="glyphicon glyphicon-stats"></span>&nbsp; My Statistics
+					</a>
+				</li>
+				<li>
+					<a href="/wordconfiguration">
+						<span class="glyphicon glyphicon-cog"></span>&nbsp; Words Config
+					</a>
+				</li>
+				<li>
+					<a data-target="#logoutmodal" data-toggle="modal" style="cursor:pointer;">
+						<span class="glyphicon glyphicon-log-out"></span>&nbsp; Sign Off
+					</a>
+				</li>
+			</ul>
+       	</div>
+	    <div id="logoin">
+	    	<a href="/" style="text-decoration:none; color:inherit;">
+		        <h1>HangMan</h1>
+		        <img src="/img/Hangman-main.png" alt="Hangman Logo"/>
+		    </a>
+	    </div>
+    </div>
+
+    <div id="gamebox" style="overflow:hidden;">
+    	
+		
+		<div id="hintsbox">
+			<span class="numberhints-text">x</span>
+			<span id="numberhints" th:text="${current_user.hints}"></span>
+			<a th:id="${!current_game.finished}?help:helpnolink" class="btn btn-info"><span class="glyphicon glyphicon-bell" style="color:white;"></span></a>
+		</div>
+		<img id="imggame" src="/img/hangman-${current_game.attempts}.png" th:attr="src=@{'/img/hangman-'+${current_game.attempts}+'.png'}"/>
+		<div id="lives">
+			<img class="heartimg" src="/img/red_heart.png" th:each="i : ${#numbers.sequence(1, current_game.attempts,1)}"/>
+			<img class="heartimg" src="/img/black_heart.png" th:each="i : ${#numbers.sequence(1, 5-current_game.attempts,1)}"/>
+		</div>
+		<div id="lettersUsed">
+			<span class="letterUsed" th:classappend="${#strings.contains(current_game.formattedWord, letter)}?green" th:each="letter : ${current_game.lettersUsed}"  th:utext="${letterStat.index%9==8}?'<br/>'+${letter}:${letter}"></span>
+		</div>
+		<ul id="helpbox"></ul>
+		
+		<div id="lettersSpace" th:if="${current_game.finished}">
+			<span class="letter" th:each="i : ${#numbers.sequence(0, current_game.word.length()-1)}" th:classappend="${!#lists.contains(current_game.lettersUsed, #strings.substring(current_game.formattedWord, i, i+1))}?red" th:text="${#strings.substring(current_game.word, i, i+1)}"></span>
+		</div>
+		<div id="lettersSpace" th:unless="${current_game.finished}">
+			<span class="letter" th:each="i : ${#numbers.sequence(0, current_game.word.length()-1)}" th:text="${#lists.contains(current_game.lettersUsed, #strings.substring(current_game.formattedWord, i, i+1))} ? ${#strings.substring(current_game.word, i, i+1)} : '_'"></span>
+		</div>
+		
+		<form>
+			<input id="inputletter" autocomplete="off" onfocus="this.value=''" maxlength="1" name="q" th:value="${param.q}" required autofocus/>
+			
+			<button th:if="${!current_game.finished}" id="go" type="submit" alt="Go"></button>
+     	</form>
+	    <a th:unless="${!current_game.finished}" href="/" id="go" alt="Go"></a>
+     	<a  href="/"><button id="returnbutton">Go back <span class="glyphicon glyphicon-share-alt"></span></button></a>
+    </div>
+
+	<!-- Modal PARTIDA FINALIZADA-->
+	<div class="modal fade" id="gameover" th:if="${current_game.finished}">
+		<div class="modal-dialog">
+		 	<div class="modal-content">
+		      	<div class="modal-header">
+		        	<h5 class="modal-title" id="exampleModalLabel" th:classappend="${current_game.attempts>0}?green:red" th:text="${current_game.attempts>0}?'You have won':'You have lost'">Game Over</h5>
+		      	</div>
+		      	<div class="modal-body">
+		        	Game over, do you want to play again?
+		      	</div>
+		      	<div class="modal-footer">
+		      		<a class="btn btn-danger" href="javascript:document.getElementById('volver').submit()">Return</a>
+		        	<a class="btn btn-primary" href="javascript:document.getElementById('jugar').submit()">Yes</a>
+		        	<form th:action="@{/}" method="GET" id="volver"></form>
+		        	<form th:action="@{/game/new/1/{id}(id=${current_user.id})}" method="GET" id="jugar"></form>
+		    	</div>
+			</div>
+		</div>
+	</div>
+	
+	<!-- Modal NO QUEDAN INTENTOS -->
+	<div class="modal fade" id="nohints">
+		<div class="modal-dialog">
+		 	<div class="modal-content">
+		      	<div class="modal-header">
+		        	<h5 class="modal-title red" id="exampleModalLabel">No hints</h5>
+		      	</div>
+		      	<div class="modal-body">
+		        	You don't have enough hints left, win games to get more.
+		      	</div>
+		      	<div class="modal-footer">
+		        	<button type="button"  class="btn btn-primary" data-dismiss="modal">Ok</button>
+		    	</div>
+			</div>
+		</div>
+	</div>
+	
+	<!-- MODAL DE CERRAR SESION -->
+	<div class="modal" tabindex="-1" role="dialog" id="logoutmodal">
+	  <div class="modal-dialog" role="document">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+	          <span aria-hidden="true" style="color:black;">&times;</span>
+	        </button>
+	        <h5 class="modal-title" style="color:black; font-weight:bold; font-size:2rem;">Log Out</h5>        
+	      </div>
+	      <div class="modal-body">
+	        <p style="color:black; font-size:1.7rem;">Are you sure you want to log out?</p>
+	      </div>
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-secondary" data-dismiss="modal" style="color:black;">No</button>
+	        <a type="button" class="btn btn-primary"  href="javascript:document.getElementById('logoutForm').submit()">Yes</a>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+	
+	
+	<!-- Muestra modal nada más cargar la pagina (usado para cuando se acaba la partida) -->
+	<script type="text/javascript">
+    $(window).on('load',function(){
+        $('#gameover').modal('show');
+    });
+	</script>
+
+	<script type="text/javascript">
+	    $('#help').click(
+	        function() {
+	          	$('#helpbox').load('/game/help');   
+	          	let hints = parseInt($('#numberhints').text());
+ 	          	if (parseInt($('#numberhints').text()) <= 0) {
+ 	          		$('#nohints').modal('show');
+ 	          	}
+	          	if (hints > 0)
+ 	          		$('#numberhints').text(hints-1);
+	        }   
+	    )
+	</script>
+
+    <script
+    src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"
+    th:src="@{/webjars/jquery/jquery.min.js}"></script>
+    <script
+    src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+    th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
+</body>
+</html>

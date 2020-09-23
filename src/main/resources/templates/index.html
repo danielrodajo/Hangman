@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <link rel="stylesheet" href="/css/styles.css" th:href="@{/css/styles.css}">
+    <link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+    th:href="@{/webjars/bootstrap/css/bootstrap.min.css}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" charset="utf-8"></script>
+<meta charset="ISO-8859-1">
+<title>Hangman</title>
+</head>
+<body style="padding:0px;">
+	<form th:action="@{/auth/logout}" method="POST" id="logoutForm"></form>
+	    
+	<ul class="box-area">
+		<li></li>
+		<li></li>
+		<li></li>
+		<li></li>
+		<li></li>
+		<li></li>
+	</ul>
+	
+	<div>
+    	<div id="profile">
+    		<a id="profiletext" href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+    			<span th:text ="${current_user.name}"></span> &nbsp;<span class="glyphicon glyphicon-user"></span>	
+    		</a>
+    		<ul class="dropdown-menu customdropdown">
+				<li>
+					<a>
+						<span class="glyphicon glyphicon-user"></span>&nbsp; My Profile
+					</a>
+				</li>
+				<li>
+					<a href="/statistics">
+						<span class="glyphicon glyphicon-stats"></span>&nbsp; My Statistics
+					</a>
+				</li>
+				<li>
+					<a href="/wordconfiguration">
+						<span class="glyphicon glyphicon-cog"></span>&nbsp; Words Config
+					</a>
+				</li>
+				<li>
+					<a data-target="#logoutmodal" data-toggle="modal" style="cursor:pointer;">
+						<span class="glyphicon glyphicon-log-out"></span>&nbsp; Sign Off
+					</a>
+				</li>
+			</ul>
+       	</div>
+	    <div id="logoin">
+	    	<a href="/" style="text-decoration:none; color:inherit;">
+		        <h1>HangMan</h1>
+		        <img src="/img/Hangman-main.png" alt="Hangman Logo"/>
+		    </a>
+	    </div>
+    </div>
+
+    <div id="scorebox">
+        <div id="scoreoptions">
+            <button id="globalscore" class="active">Global score</button>
+            <button id="myscore">My score</button>
+        </div>
+        <div id="score">
+			<div class="row" id="columnnames">
+				<div class="col-sm-2">
+					Position
+				</div>
+				<div class="col-sm-2">
+					Name
+				</div>
+				<div class="col-sm-2">
+					Attempts
+				</div>
+				<div class="col-sm-2">
+					Word
+				</div>
+				<div class="col-sm-4">
+					Score
+				</div>
+			</div>
+			
+			<div id="globaldata">
+				<div id="emptydata" th:if="${#lists.isEmpty(games)}">
+					<div class="col-sm-12">
+						<span>No games won yet</span>
+					</div>
+				</div>
+				<div class="row rowgame" th:each="game: ${games}">
+					<div class="col-sm-2">
+						<span th:text=${gameStat.index+1}></span>
+					</div>
+					<div class="col-sm-2">
+						<span th:text=${game.owner.name}></span>
+					</div>
+					<div class="col-sm-2">
+						<span th:text=${game.attempts}></span>
+					</div>
+					<div class="col-sm-2">
+						<span class="letterScore" th:text="${game.word}"></span>
+					</div>
+					<div class="col-sm-4">
+						<span th:text=${game.puntuation}></span>
+					</div>
+				</div>
+			</div>
+			
+			<div id="mydata" style="display:none;">
+				<div id="emptydata2" th:if="${#lists.isEmpty(mygames)}">
+					<div class="col-sm-12">
+						<span>No games played yet</span>
+					</div>
+				</div>
+				<div th:each="game: ${mygames}" th:classappend="${game.finished and game.attempts > 0}?greenbg">
+					<div class="row rowgame"  th:classappend="${game.finished and game.attempts == 0}?redbg">
+						<div class="col-sm-2">
+							<span th:text=${gameStat.index+1}></span>
+						</div>
+						<div class="col-sm-2">
+							<span th:text=${game.owner.name}></span>
+						</div>
+						<div class="col-sm-2">
+							<span th:text=${game.attempts}></span>
+						</div>
+						<div class="col-sm-2" th:if="${game.finished}">
+							<span class="letterScore" th:each="i : ${#numbers.sequence(0, game.word.length()-1)}" th:classappend="${!#lists.contains(game.lettersUsed, #strings.substring(game.formattedWord, i, i+1))}?red" th:text="${#strings.substring(game.word, i, i+1)}"></span>
+						</div>
+						<div class="col-sm-2" th:unless="${game.finished}">
+							<span class="letterScore" th:each="i : ${#numbers.sequence(0, game.word.length()-1)}" th:text="${#lists.contains(game.lettersUsed, #strings.substring(game.formattedWord, i, i+1))} ? ${#strings.substring(game.word, i, i+1)} : '_'"></span>
+						</div>
+						<div class="col-sm-2">
+							<span th:if="${game.puntuation}" th:text="${game.puntuation}"></span>
+							<span th:unless="${game.puntuation}" class="glyphicon glyphicon-minus"></span>
+						</div>	
+						<div class="col-xl-2">
+							<a th:href="@{/game/resume/{id}(id=${game.id})}" class="btn btn-primary">Resume</a>
+							<a th:if=${!game.finished} th:href="@{/game/edit/{id}(id=${game.id})}" class="btn btn-primary">Continue</a>
+						</div>
+					</div>
+				</div>
+			</div>
+        </div>
+        <div id="aplaybox">
+	        <a id="aplay" th:href="@{/game/new/1/{id}(id=${current_user.id})}" alt="Play!"></a>
+	        <a id="acustomplay" th:href="@{/game/new/2/{id}(id=${current_user.id})}" alt="Custom Play"></a>
+        </div>
+        
+        
+    </div>
+	
+	<footer></footer>
+	
+	<!-- MODAL DE CERRAR SESION -->
+	<div class="modal" tabindex="-1" role="dialog" id="logoutmodal">
+	  <div class="modal-dialog" role="document">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+	          <span aria-hidden="true" style="color:black;">&times;</span>
+	        </button>
+	        <h5 class="modal-title" style="color:black; font-weight:bold; font-size:2rem;">Log Out</h5>
+	      </div>
+	      <div class="modal-body">
+	        <p style="color:black; font-size:1.7rem;">Are you sure you want to log out?</p>
+	      </div>
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-secondary" data-dismiss="modal" style="color:black;">No</button>
+	        <a type="button" class="btn btn-primary"  href="javascript:document.getElementById('logoutForm').submit()">Yes</a>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+
+	<script type="text/javascript">
+	    $('#myscore').click(
+	        function() {
+	      		$('#globaldata').hide();
+	      		$('#mydata').show();
+	      		$('#myscore').addClass('active'); 
+	      		$('#globalscore').removeClass('active');
+	      		
+	        }   
+	    )
+	    
+	     $('#globalscore').click(
+	        function() {
+	      		$('#mydata').hide();
+	      		$('#globaldata').show();
+	      		$('#globalscore').addClass('active');
+	      		$('#myscore').removeClass('active');
+	        }   
+	    )
+	</script>
+
+    <script
+    src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"
+    th:src="@{/webjars/jquery/jquery.min.js}"></script>
+    <script
+    src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+    th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
+</body>
+</html>

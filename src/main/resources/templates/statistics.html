@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <link rel="stylesheet" href="/css/styles.css" th:href="@{/css/styles.css}">
+    <link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+    th:href="@{/webjars/bootstrap/css/bootstrap.min.css}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" charset="utf-8"></script>
+<meta charset="ISO-8859-1">
+<title>Hangman</title>
+</head>
+<body style="padding:0px;">
+	<form th:action="@{/auth/logout}" method="POST" id="logoutForm"></form>
+		    
+	<ul class="box-area">
+		<li></li>
+		<li></li>
+		<li></li>
+		<li></li>
+		<li></li>
+		<li></li>
+	</ul>
+	
+	<div>
+    	<div id="profile">
+    		<a id="profiletext" href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+    			<span th:text ="${current_user.name}"></span> &nbsp;<span class="glyphicon glyphicon-user"></span>	
+    		</a>
+    		<ul class="dropdown-menu customdropdown">
+				<li>
+					<a>
+						<span class="glyphicon glyphicon-user"></span>&nbsp; My Profile
+					</a>
+				</li>
+				<li>
+					<a href="/statistics">
+						<span class="glyphicon glyphicon-stats"></span>&nbsp; My Statistics
+					</a>
+				</li>
+				<li>
+					<a href="/wordconfiguration">
+						<span class="glyphicon glyphicon-cog"></span>&nbsp; Words Config
+					</a>
+				</li>
+				<li>
+					<a data-target="#logoutmodal" data-toggle="modal" style="cursor:pointer;">
+						<span class="glyphicon glyphicon-log-out"></span>&nbsp; Sign Off
+					</a>
+				</li>
+			</ul>
+       	</div>
+	    <div id="logoin">
+	    	<a href="/" style="text-decoration:none; color:inherit;">
+		        <h1>HangMan</h1>
+		        <img src="/img/Hangman-main.png" alt="Hangman Logo"/>
+		    </a>
+	    </div>
+    </div>
+
+	<div id="resumebox">
+		<a  href="/"><button id="returnresumebutton">Return <span class="glyphicon glyphicon-share-alt"></span></button></a>
+		<h3 class="gamehistory">Statistics about your uses of letters</h3>
+		<div id="score" class="resumescore">
+			<div class="row" id="columnnames">
+				<div class="col-sm-1">
+					Letter
+				</div>
+				<div class="col-sm-11">
+					Times Used
+				</div>
+			</div>
+			<div class="row rowgame" th:each="dataLetter : ${data}">
+			
+				<div class="col-sm-1">
+					<span th:text="${dataLetter.key}"></span>
+				</div>
+				<div class="col-sm-1">
+					<span class="values" th:text="${dataLetter.value}"></span>
+				</div>
+				<div class="col-sm-10">
+					<span class="graph"></span>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<footer></footer>
+	
+	<!-- MODAL DE CERRAR SESION -->
+	<div class="modal" tabindex="-1" role="dialog" id="logoutmodal">
+	  <div class="modal-dialog" role="document">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+	          <span aria-hidden="true" style="color:black;">&times;</span>
+	        </button>
+	        <h5 class="modal-title" style="color:black; font-weight:bold; font-size:2rem;">Log Out</h5>
+	      </div>
+	      <div class="modal-body">
+	        <p style="color:black; font-size:1.7rem;">Are you sure you want to log out?</p>
+	      </div>
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-secondary" data-dismiss="modal" style="color:black;">No</button>
+	        <a type="button" class="btn btn-primary"  href="javascript:document.getElementById('logoutForm').submit()">Yes</a>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+	
+	<!-- Animacion de los graficos, además de asignacion del correcto tamaño de cada uno -->
+	<script>
+	$(window).on('load', function() {
+		if (parseInt(document.getElementsByClassName("values")[0].textContent) <= 0) 
+			document.getElementsByClassName("graph")[0].style.width = "5px";
+						
+		 let maxWidth = parseInt(document.getElementsByClassName("graph")[0].offsetWidth);		 
+		 let slice = maxWidth/parseInt(document.getElementsByClassName("values")[0].textContent);
+		 for (i=1; i<document.getElementsByClassName("graph").length; i++) {
+			 let newWidth = slice * parseInt(document.getElementsByClassName("values")[i].textContent);
+			 if (newWidth > 0)
+			 	document.getElementsByClassName("graph")[i].style.width = newWidth+"px";
+			 else
+				 document.getElementsByClassName("graph")[i].style.width = "5px";
+		 }
+		 
+	});
+	</script>
+	
+    <script
+    src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"
+    th:src="@{/webjars/jquery/jquery.min.js}"></script>
+    <script
+    src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+    th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
+</body>
+</html>

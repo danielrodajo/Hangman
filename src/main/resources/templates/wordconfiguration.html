@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <link rel="stylesheet" href="/css/styles.css" th:href="@{/css/styles.css}">
+    <link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+    th:href="@{/webjars/bootstrap/css/bootstrap.min.css}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" charset="utf-8"></script>
+<meta charset="ISO-8859-1">
+<title>Hangman</title>
+</head>
+<body style="padding:0px;">
+	<form th:action="@{/auth/logout}" method="POST" id="logoutForm"></form>>
+	<form th:action="@{/wordconfiguration/upload/success}" method="POST" id="successWords"></form>
+		    
+	<ul class="box-area">
+		<li></li>
+		<li></li>
+		<li></li>
+		<li></li>
+		<li></li>
+		<li></li>
+	</ul>
+	
+	<div>
+    	<div id="profile">
+    		<a id="profiletext" href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+    			<span th:text ="${current_user.name}"></span> &nbsp;<span class="glyphicon glyphicon-user"></span>	
+    		</a>
+    		<ul class="dropdown-menu customdropdown">
+				<li>
+					<a>
+						<span class="glyphicon glyphicon-user"></span>&nbsp; My Profile
+					</a>
+				</li>
+				<li>
+					<a href="/statistics">
+						<span class="glyphicon glyphicon-stats"></span>&nbsp; My Statistics
+					</a>
+				</li>
+				<li>
+					<a href="/wordconfiguration">
+						<span class="glyphicon glyphicon-cog"></span>&nbsp; Words Config
+					</a>
+				</li>
+				<li>
+					<a data-target="#logoutmodal" data-toggle="modal" style="cursor:pointer;">
+						<span class="glyphicon glyphicon-log-out"></span>&nbsp; Sign Off
+					</a>
+				</li>
+			</ul>
+       	</div>
+	    <div id="logoin">
+	    	<a href="/" style="text-decoration:none; color:inherit;">
+		        <h1>HangMan</h1>
+		        <img src="/img/Hangman-main.png" alt="Hangman Logo"/>
+		    </a>
+	    </div>
+    </div>
+
+	<div id="resumebox">
+		<a  href="/"><button id="returnresumebutton">Return <span class="glyphicon glyphicon-share-alt"></span></button></a>
+		<h3 class="gamehistory">My Words Configuration</h3>
+		<div id="score" class="resumescore" style="max-height:65vh;">
+		
+		    <div id="uploadfiles">
+		    	<a id="cancelbtn" class="cursorDefault">Cancel</a>
+		    	<a id="acceptbtn" class="cursorDefault">Accept</a>
+				<form th:action="@{/wordconfiguration/upload}" method="POST" id="uploadData" enctype="multipart/form-data">
+					<div id="choosefiles">
+				        <label for="filebutton" class="btn-lg btn-block animation-btn2"><span class="glyphicon glyphicon-upload"></span>&nbsp; Upload Words</label>
+				        <input id="filebutton" name="filebutton" style="display: none;" type="file"/>   
+			        	
+			        </div>
+			    </form>
+			    <div id="newwords" class="wordsbox" style="width:100%;">
+			    	<h3 id="uploadwordtext" class="gamehistory" style="text-align: center; margin:20px; color: white;">No uploaded words</h3>
+			    </div>
+		    </div>
+		    
+		    <h4 id="customwordstitle">My Custom Words</h4>
+		    <div class="wordsbox">
+				<h3 th:if="${userwords == null or #lists.isEmpty(userwords)}" class="gamehistory" style="text-align: center; margin:20px; color: white;">No words saved</h3>
+		    	<div class="row rowgame" style="margin:auto;width:94%;" th:each="word : ${userwords}">
+		    		<form class="editWordForm" method="POST">
+			    		<input type="text" class="col-sm-8 customword noeditable" style="margin-left:20px;" th:placeholder="${word}" readonly/>
+			    		<div class="col-sm-3" style="text-align:right; padding: 0px;">
+			    			<button class="glyphicon glyphicon-ok okButton manualhide" type="submit"></button>
+			    			<span onClick="enableEditing(this)" class="glyphicon glyphicon-edit editButton"></span>
+			    			<a th:href="@{/wordconfiguration/delete/{word}(word=${word})}" class="glyphicon glyphicon-remove removeButton"></a>
+			    		</div>
+		    		</form>
+		    	</div>
+		    </div>
+		</div>
+	</div>
+	
+	<footer></footer>
+	
+	<!-- CUANDO SE ELIGEN ARCHIVOS -->
+	<script>
+	$( "#filebutton" ).change(function() {
+		var formData = new FormData();
+		formData.append("file", $(this)[0].files[0]);
+       $.ajax({
+              url : '/wordconfiguration/upload',
+              data : formData,
+              type:'POST',
+              enctype:'multipart/form-data',
+              processData: false, 
+              contentType:false,
+              success : function(words) {
+              	for (i=0; i<words.length; i++)
+              		$("#newwords").append("<div class='row rowgame' style='margin:auto;width:94%;''><span class='col-sm-9 customword2' style='margin-left:20px;''>"+words[i]+"</span></div>");
+	
+              	$("#acceptbtn").attr("href", "javascript:document.getElementById('successWords').submit()");
+              	$("#cancelbtn").attr("href", "");
+              	$("#acceptbtn").css({opacity:1});
+              	$("#cancelbtn").css({opacity:1});
+              	$("#acceptbtn").removeClass("cursorDefault");
+              	$("#cancelbtn").removeClass("cursorDefault");
+              	$('#acceptbtn').removeAttr("disabled");
+              	$('#cancelbtn').removeAttr("disabled");
+              	$('#uploadwordtext').hide();
+              },
+              error : function(err){
+            	  console.log(err);
+              }
+          });
+	});
+	</script>
+	
+	<!-- CUANDO SE EDITA UNA PALABRA -->
+	<script>
+	$( ".editWordForm" ).submit(function(event) {
+		event.preventDefault();
+		let formData = new FormData();
+		let input = $(this).find("input");
+		let okButton = $(this).find(".okButton")[0];
+		formData.append("input", input);
+		formData.append("original", $(input).attr("placeholder"));
+		formData.append("new", $(input).val());
+       $.ajax({
+              url : '/wordconfiguration/edit',
+              data : formData,
+              type:'POST',
+              enctype:'multipart/form-data',
+              processData: false, 
+              contentType:false,
+              success : function(wasUpdated) {
+            	  if (wasUpdated) 
+            		  $(input).attr("placeholder", $(input).val());	  
+
+             	  let index = 0;
+             	  let okButtons = document.getElementsByClassName("okButton");
+             	  for (i=0; i<okButtons.length; i++) {
+             		if (okButtons[i] == okButton) {
+             			index = i;
+             			break;
+             		}
+              	  }
+             	  disableEditing(okButton, index);
+              },
+              error : function(err){
+            	  console.log(err);
+              }
+          });
+	});
+	</script>
+	
+	<!-- MODAL DE CERRAR SESION -->
+	<div class="modal" tabindex="-1" role="dialog" id="logoutmodal">
+	  <div class="modal-dialog" role="document">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+	          <span aria-hidden="true" style="color:black;">&times;</span>
+	        </button>
+	        <h5 class="modal-title" style="color:black; font-weight:bold; font-size:2rem;">Log Out</h5>
+	      </div>
+	      <div class="modal-body">
+	        <p style="color:black; font-size:1.7rem;">Are you sure you want to log out?</p>
+	      </div>
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-secondary" data-dismiss="modal" style="color:black;">No</button>
+	        <a type="button" class="btn btn-primary"  href="javascript:document.getElementById('logoutForm').submit()">Yes</a>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+	
+	<!-- HABILITA/DESHABILITA EDITABLE -->
+	<script>
+	function enableEditing(editButton) {
+		let editButtons = document.getElementsByClassName("editButton");
+		let index = 0;
+		for (i=0; i<editButtons.length; i++) {
+			if (editButtons[i] == editButton) {
+				index = i;
+				break;
+			}
+		}
+
+		//Comprobamos si se ha pulsado al propio boton, en ese caso, deshabilitamos la edicion
+		let elementNoEditable = document.getElementsByClassName("customword")[index];
+		let okButtons = document.getElementsByClassName("okButton");
+		if (!$(elementNoEditable).hasClass("noeditable")) {
+			disableEditing(okButtons[index], index);
+			return;
+		}
+		
+		//Comprobamos si ya hay otra zona activada para edición, y de ser así, la deshabilitamos
+		for (i=0; i<okButtons.length; i++) {
+			if (!$(okButtons[i]).hasClass("manualhide")) {
+				disableEditing(okButtons[i], i);
+				break;
+			}
+		}
+		
+		let text = $(elementNoEditable).attr("placeholder");
+		$(elementNoEditable).removeClass("noeditable");
+		$(elementNoEditable).removeAttr("readonly");
+		$(elementNoEditable).focus();
+		$(elementNoEditable).val(text);
+		
+		let okButton = document.getElementsByClassName("okButton")[index];
+		$(okButton).removeClass("manualhide");
+	}
+	
+	function disableEditing(okButton, index) {
+		$(okButton).addClass("manualhide");
+		let elementNoEditable = document.getElementsByClassName("customword")[index];
+		$(elementNoEditable).addClass("noeditable");
+		$(elementNoEditable).attr("readonly", "true");
+		$(elementNoEditable).val('');
+	}
+	</script>
+	
+	
+    <script
+    src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"
+    th:src="@{/webjars/jquery/jquery.min.js}"></script>
+    <script
+    src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+    th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
+</body>
+</html>

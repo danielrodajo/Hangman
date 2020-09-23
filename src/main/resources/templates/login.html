@@ -1,0 +1,101 @@
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <link rel="stylesheet" href="/css/styles.css" th:href="@{/css/styles.css}">
+    <link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+    th:href="@{/webjars/bootstrap/css/bootstrap.min.css}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" charset="utf-8"></script>
+<meta charset="ISO-8859-1">
+<title>Hangman</title>
+</head>
+<body>
+    
+	<ul class="box-area">
+		<li></li>
+		<li></li>
+		<li></li>
+		<li></li>
+		<li></li>
+		<li></li>
+	</ul>
+
+    <div id="logo">
+        <h1>HangMan</h1>
+        <img src="/img/Hangman-main.png" alt="Hangman Logo"/>
+    </div>
+
+    <div id="signinbox">
+        <form class="form-signin" method="post"	th:action="@{/auth/login-post}" role="form">
+        
+    		<div th:if="${param.error}" class="alert alert-danger alert-dismissible">
+        		<span style="color:#a94442;">Incorrect username or password</span>
+        		<button type="button" class="close" data-dismiss="alert">&times;</button>
+        	</div>
+        	
+            <div class="txtb">
+                <input style="margin-bottom:10px;" type="text" autocomplete="off" id="username" name="username" required> 
+                <span data-placeholder="Nickname"></span>
+            </div>
+            <div class="txtb">
+                <input type="password" name="password"  id="password" required>
+                <span data-placeholder="Password"></span>
+            </div>
+            <button class="btn-lg btn-block animation-btn" type="submit">Sign in</button>
+            <div id="sign-up-box">
+                <p>Don't you still  have an account? <br/><a href="#" onClick="$('#signinbox').hide(); $('#signupbox').show()">Sign up</a></p>
+            </div>                
+        </form>
+    </div>
+
+    <div id="signupbox" style="display: none;">
+        <form class="form-signup" role="form" method="post" th:action="@{/auth/register}" th:object="${user}"> 
+            
+            
+            <!-- Name input-->
+            <div class="form-group">
+                <label class="control-label" for="textinput">Nickname</label>  
+                <input id="textinput" name="textinput" type="text" class="form-control input-md" th:field="*{name}">
+                
+            </div>
+            
+            <!-- Email input-->
+            <div class="form-group">
+                <label class="control-label" for="textinput">Email</label>              
+                <input id="textinput" name="textinput" type="email" class="form-control input-md" th:field="*{email}">
+              
+            </div>
+            
+            <!-- Password input-->
+            <div class="form-group">
+                <label class="control-label" for="passwordinput">Password</label>
+                <input id="passwordinput" name="passwordinput" type="password" class="form-control input-md" th:field="*{password}">
+                
+            </div>
+  
+            <button class="btn-lg btn-block animation-btn" type="submit">Sign up</button>  
+            <div id="sign-up-box">
+            <p><a href="#" onclick="$('#signupbox').hide(); $('#signinbox').show()" type="button">Go back</a></p>
+            </div>
+        </form>
+    </div>
+
+
+    <script type="text/javascript">
+        $(".txtb input").on("focus",function(){
+          $(this).addClass("focus");
+        });
+  
+        $(".txtb input").on("blur",function(){
+          if($(this).val() == "")
+          $(this).removeClass("focus");
+        });
+    </script>
+
+    <script
+    src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"
+    th:src="@{/webjars/jquery/jquery.min.js}"></script>
+    <script
+    src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+    th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
+</body>
+</html>
